@@ -1,5 +1,6 @@
 const fs = require('fs')
 const path = require('path')
+const logger = require('../helpers/logger')('Tester')
 const { fork } = require('child_process')
 const Network = require('./Network')
 const Artifacts = require('./Artifacts')
@@ -7,14 +8,14 @@ const CourtDeployer = require('./CourtDeployer')
 
 module.exports = class {
   constructor(network) {
-    this.stats = {}
+    this.networkName = network
     this.network = new Network(network)
   }
 
   async run(process, config) {
     const court = await this._deployCourt(config)
-    this.stats[court.address] = { started: 0, ended: 0 }
     this._loadActions(process, court)
+    this._subscribeChildProcesses()
   }
 
   async _deployCourt(config) {
@@ -25,21 +26,26 @@ module.exports = class {
   }
 
   _loadActions(process, court) {
-    this._actionsList().forEach(({ actionName, actionPath }) => {
-      this.stats[court.address].started += 1
-      const handler = require(path.resolve(actionPath, 'handler'))
-      const action = fork(path.resolve(actionPath, 'progression'))
+    this.childProcesses = this._actionsList().map(({ actionName, actionPath }) =>  {
+      const child = fork(actionPath, ['-n', this.networkName, '-c', court.address])
+      return { actionName, child }
+    })
+  }
 
-      action.on('message', async args => {
-        console.log(`Handling message from ${actionName} #${action.pid} with args: ${args}`)
-        await handler(court, args)
+  _subscribeChildProcesses(childProcesses) {
+    this.childProcesses.forEach(({ actionName, child }) => {
+      // subscribe to child process executed actions to broadcast it through the rest of the children
+      child.on('message', ([action, params, receipt]) => {
+        logger.info(`Handling '${action}' action executed with args [${params}] and receipt (${receipt})`)
+        this.childProcesses.forEach(({ child: anotherChild }) => anotherChild.send([action, params, receipt]))
       })
 
-      action.on('exit', code => {
-        console.log(`Child process ${actionName} #${action.pid} exited with code ${code}`)
-        this.stats[court.address].ended += 1
-        const { started, ended } = this.stats[court.address]
-        if (ended === started) process.exit(0)
+      // subscribe to child process exit, and exit once all have ended
+      child.on('exit', code => {
+        logger.info(`Child process ${actionName} #${child.pid} exited with code ${code}`)
+        const childIndex = this.childProcesses.map(({ actionName, child }) => child.pid).indexOf(child.pid)
+        if (childIndex > -1) this.childProcesses.splice(childIndex, 1)
+        if (this.childProcesses.length === 0) process.exit(0)
       })
     })
   }

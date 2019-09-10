@@ -13,11 +13,13 @@ module.exports = class {
     return this.court.address
   }
 
-  async activate(juror) {
-    logger.success('activating juror ', juror)
+  async activate(juror, amount) {
+    logger.success(`activating juror ${juror} with amount ${amount}`)
+    return 'activation receipt'
   }
 
-  async deactivate(juror) {
-    logger.success('deactivating juror ', juror)
+  async deactivate(juror, amount) {
+    logger.success(`deactivating juror ${juror} with amount ${amount}`)
+    return 'deactivation receipt'
   }
 }
