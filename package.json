@@ -1,0 +1,20 @@
+{
+  "name": "@aragon/court-intergration-testing",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "compile": "truffle compile",
+    "start": "npm run compile && node ./index.js"
+  },
+  "author": "Aragon Association",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@aragon/court": "aragon/aragon-court#upgrade_solidity_5",
+    "@truffle/config": "^1.1.21",
+    "@truffle/contract": "^4.0.32",
+    "chalk": "^2.4.2",
+    "truffle": "^5.0.35",
+    "web3": "^1.2.1",
+    "yargs": "^14.0.0"
+  }
+}
