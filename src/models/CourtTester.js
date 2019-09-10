@@ -4,18 +4,19 @@ const logger = require('../helpers/logger')('Tester')
 const { fork } = require('child_process')
 const Network = require('./Network')
 const Artifacts = require('./Artifacts')
+const EventsBroker = require('./EventsBroker')
 const CourtDeployer = require('./CourtDeployer')
 
 module.exports = class {
   constructor(network) {
     this.networkName = network
+    this.broker = new EventsBroker()
     this.network = new Network(network)
   }
 
   async run(process, config) {
     const court = await this._deployCourt(config)
     this._loadActions(process, court)
-    this._subscribeChildProcesses()
   }
 
   async _deployCourt(config) {
@@ -26,26 +27,15 @@ module.exports = class {
   }
 
   _loadActions(process, court) {
-    this.childProcesses = this._actionsList().map(({ actionName, actionPath }) =>  {
+    this._actionsList().map(({ actionName, actionPath }) =>  {
       const child = fork(actionPath, ['-n', this.networkName, '-c', court.address])
-      return { actionName, child }
-    })
-  }
-
-  _subscribeChildProcesses(childProcesses) {
-    this.childProcesses.forEach(({ actionName, child }) => {
-      // subscribe to child process executed actions to broadcast it through the rest of the children
-      child.on('message', ([action, params, receipt]) => {
-        logger.info(`Handling '${action}' action executed with args [${params}] and receipt (${receipt})`)
-        this.childProcesses.forEach(({ child: anotherChild }) => anotherChild.send([action, params, receipt]))
-      })
-
-      // subscribe to child process exit, and exit once all have ended
-      child.on('exit', code => {
-        logger.info(`Child process ${actionName} #${child.pid} exited with code ${code}`)
-        const childIndex = this.childProcesses.map(({ actionName, child }) => child.pid).indexOf(child.pid)
-        if (childIndex > -1) this.childProcesses.splice(childIndex, 1)
-        if (this.childProcesses.length === 0) process.exit(0)
+      child.on('message', ([action, args]) => {
+        if (action === 'subscribe') {
+          logger.info(`Action ${actionName} #${child.pid} subscribe to events [${args}]`)
+          this.broker.addListener(child)
+          args.forEach(event => this.broker.subscribe(child.pid, event))
+        }
+        else this.broker.publish(action, args)
       })
     })
   }
