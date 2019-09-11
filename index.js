@@ -5,8 +5,8 @@ const CourtTester = require('./src/models/CourtTester')
 const errorHandler = require('./src/helpers/errorHandler')
 
 const { network, config: configFileName } = require('yargs')
-  .option('n', { alias: 'network', describe: 'Network name', type: 'string' })
-  .option('c', { alias: 'config', describe: 'Config file name', type: 'string', default: 'config' })
+  .option('network', { alias: 'n', describe: 'Network name', type: 'string', demand: true })
+  .option('config', { alias: 'c', describe: 'Config file name', type: 'string', default: 'config', demand: true })
   .argv
 
 async function run() {

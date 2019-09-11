@@ -5,8 +5,8 @@ const CourtProvider = require('../models/CourtProvider')
 
 module.exports = async function (subscriptions) {
   const { network: networkName, court: courtAddress } = require('yargs')
-    .option('c', { alias: 'court', describe: 'Court address', type: 'string' })
-    .option('n', { alias: 'network', describe: 'Network name', type: 'string' })
+    .option('court', { alias: 'c', describe: 'Court address', type: 'string', demand: true })
+    .option('network', { alias: 'n', describe: 'Network name', type: 'string', demand: true })
     .argv
 
   const network = new Network(networkName)
