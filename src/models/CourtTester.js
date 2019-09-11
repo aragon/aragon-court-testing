@@ -1,4 +1,3 @@
-const fs = require('fs')
 const path = require('path')
 const logger = require('../helpers/logger')('Tester')
 const { fork } = require('child_process')
@@ -14,9 +13,9 @@ module.exports = class {
     this.network = new Network(network)
   }
 
-  async run(process, config) {
-    const court = await this._deployCourt(config)
-    this._loadActions(process, court)
+  async run({ actions, court: courtConfig }) {
+    const court = await this._deployCourt(courtConfig)
+    this._loadActions(actions, court)
   }
 
   async _deployCourt(config) {
@@ -26,22 +25,15 @@ module.exports = class {
     return deployer.call(config)
   }
 
-  _loadActions(process, court) {
-    this._actionsList().map(({ actionName, actionPath }) =>  {
+  _loadActions(actions, court) {
+    actions.map(action => {
+      const actionPath = path.resolve(__dirname, `../actions/${action}`)
       const child = fork(actionPath, ['-n', this.networkName, '-c', court.address])
+      logger.info(`Created process for '${action}' with pid #${child.pid}`)
       child.on('message', ([action, args]) => {
-        if (action === 'subscribe') {
-          logger.info(`Action ${actionName} #${child.pid} subscribe to events [${args}]`)
-          this.broker.addListener(child)
-          args.forEach(event => this.broker.subscribe(child.pid, event))
-        }
+        if (action === 'subscribe') this.broker.addAndSubscribe(child, args)
         else this.broker.publish(action, args)
       })
     })
-  }
-
-  _actionsList() {
-    const actionsPath = path.resolve(__dirname, '../actions')
-    return fs.readdirSync(actionsPath).map(file => ({ actionName: file, actionPath: path.resolve(actionsPath, file) }))
   }
 }

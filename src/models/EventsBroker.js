@@ -6,6 +6,12 @@ module.exports = class {
     this.subscriptions = {}
   }
 
+  addAndSubscribe(listener, events) {
+    this.addListener(listener)
+    events.forEach(event => this.subscribe(listener.pid, event))
+    logger.info(`Listener #${listener.pid} subscribed to events: ${events.join(', ')}`)
+  }
+
   addListener(listener) {
     if (!this.listeners[listener.pid]) {
       this.listeners[listener.pid] = listener

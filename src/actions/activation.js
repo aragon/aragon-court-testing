@@ -13,7 +13,7 @@ async function deactivationHandler(params, receipt) {
 
 async function run() {
   logger.info(`Activation action: #${process.pid}`)
-  const { court, web3 } = await actionLoader(process, SUBSCRIPTIONS)
+  const { court, web3 } = await actionLoader(SUBSCRIPTIONS)
 
   const accounts = await web3.eth.getAccounts()
   for (let i = 1; i < 10; i++) {

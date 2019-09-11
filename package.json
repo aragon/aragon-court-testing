@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "compile": "truffle compile",
-    "start": "npm run compile && node ./index.js"
+    "start": "npm run compile && ./index.js -n rpc -c config"
   },
   "author": "Aragon Association",
   "license": "GPL-3.0",
