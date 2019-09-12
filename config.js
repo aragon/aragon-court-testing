@@ -26,7 +26,21 @@ module.exports = {
     subscriptionGovernorSharePct:       bn(0),            //  none subscription governor shares
   },
   actions: [
-    'activation',
-    'deactivation'
+    {
+      name: 'activation',
+      path: './src/actions/activation',
+      processes: 1,
+      args: {
+        jurors: 20
+      }
+    },
+    {
+      name: 'deactivation',
+      path: './src/actions/deactivation',
+      processes: 2,
+      args: {
+        jurors: 10
+      }
+    },
   ]
 }

@@ -1,5 +1,5 @@
-const path = require('path')
 const logger = require('../helpers/logger')('Tester')
+const nodePath = require('path')
 const { fork } = require('child_process')
 const Network = require('./Network')
 const Artifacts = require('./Artifacts')
@@ -26,14 +26,21 @@ module.exports = class {
   }
 
   _loadActions(actions, court) {
-    actions.map(action => {
-      const actionPath = path.resolve(__dirname, `../actions/${action}`)
-      const child = fork(actionPath, ['-n', this.networkName, '-c', court.address])
-      logger.info(`Created process for '${action}' with pid #${child.pid}`)
-      child.on('message', ([action, args]) => {
-        if (action === 'subscribe') this.broker.addAndSubscribe(child, args)
-        else this.broker.publish(action, args)
-      })
+    actions.map(({ name, path, processes, args }) => {
+      const actionPath = nodePath.resolve(process.cwd(), path)
+      for (let process = 0; process < processes; process++) {
+        this._startActionProcess(court, actionPath, name, args)
+      }
+    })
+  }
+
+  _startActionProcess(court, actionPath, name, args) {
+    const processArgs = Object.keys(args).reduce((list, argName) => list.concat([`--${argName}`, args[argName]]), [])
+    const child = fork(actionPath, ['-n', this.networkName, '-c', court.address, ...processArgs])
+    logger.info(`Created process for '${name}' with pid #${child.pid}`)
+    child.on('message', ([request, params]) => {
+      if (request === 'subscribe') this.broker.addAndSubscribe(child, params)
+      else this.broker.publish(request, params)
     })
   }
 }
