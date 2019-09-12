@@ -25,10 +25,10 @@ module.exports = {
     subscriptionLatePaymentPenaltyPct:  bn(0),            //  none subscription late payment penalties
     subscriptionGovernorSharePct:       bn(0),            //  none subscription governor shares
   },
-  actions: [
+  agents: [
     {
       name: 'activation',
-      path: './src/actions/activation',
+      path: './src/agents/Activation',
       processes: 1,
       args: {
         jurors: 20
@@ -36,7 +36,7 @@ module.exports = {
     },
     {
       name: 'deactivation',
-      path: './src/actions/deactivation',
+      path: './src/agents/Deactivation',
       processes: 2,
       args: {
         jurors: 10

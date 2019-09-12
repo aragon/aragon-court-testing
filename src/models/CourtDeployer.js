@@ -1,3 +1,4 @@
+const Environment = require('./Environment')
 const CourtWrapper = require('./CourtWrapper')
 
 const EXPECTED_COURT_CONFIG_PARAMS = [
@@ -25,20 +26,20 @@ const EXPECTED_COURT_CONFIG_PARAMS = [
 ]
 
 module.exports = class {
-  constructor(web3, artifacts) {
-    this.web3 = web3
-    this.artifacts = artifacts
+  constructor(network) {
+    this.environment = new Environment(network)
   }
 
   async call(config) {
-    const params = await this._ensureCourtParams(config)
-    const court = await this._deploy(params)
+    const artifacts = await this.environment.getArtifacts()
+    const params = await this._ensureCourtParams(artifacts, config)
+    const court = await this._deploy(artifacts, params)
     const { jurorsRegistry, voting, subscriptions, accounting } = params
     return new CourtWrapper(court, jurorsRegistry, voting, subscriptions, accounting)
   }
 
-  async _deploy(params) {
-    return this.artifacts.require('Court').new(
+  async _deploy(artifacts, params) {
+    return artifacts.require('Court').new(
       params.termDuration,
       [params.jurorToken.address, params.feeToken.address],
       params.jurorsRegistry.address,
@@ -57,14 +58,14 @@ module.exports = class {
     )
   }
 
-  async _ensureCourtParams(config) {
+  async _ensureCourtParams(artifacts, config) {
     const params = config
-    params.voting = await this.artifacts.require('CRVoting').new()
-    params.accounting = await this.artifacts.require('CourtAccounting').new()
-    params.feeToken = await this.artifacts.require('ERC20Mock').new('Court Fee Token', 'CFT', 18)
-    params.jurorToken = await this.artifacts.require('ERC20Mock').new('Aragon Network Juror Token', 'ANJ', 18)
-    params.jurorsRegistry =  await this.artifacts.require('JurorsRegistry').new()
-    params.subscriptions = await this.artifacts.require('CourtSubscriptions').new()
+    params.voting = await artifacts.require('CRVoting').new()
+    params.accounting = await artifacts.require('CourtAccounting').new()
+    params.feeToken = await artifacts.require('ERC20Mock').new('Court Fee Token', 'CFT', 18)
+    params.jurorToken = await artifacts.require('ERC20Mock').new('Aragon Network Juror Token', 'ANJ', 18)
+    params.jurorsRegistry =  await artifacts.require('JurorsRegistry').new()
+    params.subscriptions = await artifacts.require('CourtSubscriptions').new()
 
     EXPECTED_COURT_CONFIG_PARAMS.forEach(param => {
       if (!params[param]) throw new Error(`Please provide a ${param} in the court config object`)
