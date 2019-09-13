@@ -28,7 +28,9 @@ module.exports = class {
 
   publish(event, args) {
     if (this.subscriptions[event]) {
-      this.subscriptions[event].forEach(pid => this.listeners[pid].send([event, args]))
+      this.subscriptions[event].forEach(pid =>
+        this.listeners[pid].send([event, args])
+      )
     }
   }
 

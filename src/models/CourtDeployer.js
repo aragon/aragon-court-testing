@@ -1,5 +1,5 @@
+const Court = require('./Court')
 const Environment = require('./Environment')
-const CourtWrapper = require('./CourtWrapper')
 
 const EXPECTED_COURT_CONFIG_PARAMS = [
   'governor',
@@ -35,7 +35,7 @@ module.exports = class {
     const params = await this._ensureCourtParams(artifacts, config)
     const court = await this._deploy(artifacts, params)
     const { jurorsRegistry, voting, subscriptions, accounting } = params
-    return new CourtWrapper(court, jurorsRegistry, voting, subscriptions, accounting)
+    return new Court(court, jurorsRegistry, voting, subscriptions, accounting)
   }
 
   async _deploy(artifacts, params) {

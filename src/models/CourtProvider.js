@@ -1,5 +1,5 @@
+const Court = require('./Court')
 const Environment = require('./Environment')
-const CourtWrapper = require('./CourtWrapper')
 
 const COURT_DEPENDENCIES_STORAGE_POSITIONS = {
   registry:       '0x0000000000000000000000000000000000000000000000000000000000000000',
@@ -23,7 +23,7 @@ module.exports = class {
     const voting = this._fetchVoting(artifacts, web3, address)
     const subscriptions = this._fetchSubscriptions(artifacts, web3, address)
 
-    return new CourtWrapper(court, jurorsRegistry, voting, subscriptions, accounting)
+    return new Court(court, jurorsRegistry, voting, subscriptions, accounting)
   }
 
   async _fetchJurorsRegistry(artifacts, web3, courtAddress) {

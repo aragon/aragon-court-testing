@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 const path = require('path')
-const CourtTester = require('../src/models/CourtTester')
+const Tester = require('../src/models/Tester')
 const errorHandler = require('../src/helpers/errorHandler')
 
 const { network, config: configFileName } = require('yargs')
@@ -10,11 +10,9 @@ const { network, config: configFileName } = require('yargs')
   .argv
 
 async function run() {
-  const config = require(path.resolve(__dirname, configFileName))
-  const courtTester = new CourtTester(network)
-  await courtTester.run(config)
+  const config = require(path.resolve(process.cwd(), configFileName))
+  const tester = new Tester(network)
+  await tester.run(config)
 }
 
-run()
-  .then(() => process.exit(0))
-  .catch(errorHandler)
+run().catch(errorHandler)

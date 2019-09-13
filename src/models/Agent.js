@@ -1,9 +1,5 @@
 const sleep = require('../helpers/sleep')
-
-const SUBSCRIPTIONS = {
-  activate: 'activationHandler',
-  deactivate: 'deactivationHandler',
-}
+const { EVENTS } = require('../models/Court')
 
 module.exports = class {
   constructor(environment, court, options) {
@@ -19,13 +15,14 @@ module.exports = class {
   async subscribe() {
     const subscriptions = this.subscriptions()
     process.on('message', ([event, args]) => subscriptions[event](...args))
-    await sleep(2) // TODO: solve concurrency
+    await sleep(1) // TODO: solve concurrency
     process.send(['subscribe', Object.keys(subscriptions)])
   }
 
   subscriptions() {
-    return Object.keys(SUBSCRIPTIONS).reduce((list, event) => {
-      const handler = this[SUBSCRIPTIONS[event]]
+    return EVENTS.reduce((list, event) => {
+      const handlerName = `on${event.charAt(0).toUpperCase()}${event.slice(1)}`
+      const handler = this[handlerName]
       if (handler) list[event] = handler
       return list
     }, {})

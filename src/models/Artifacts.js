@@ -16,6 +16,6 @@ module.exports = class Artifacts {
   }
 
   _getBuildPath(contractName) {
-    return path.resolve(__dirname, `../../build/contracts/${contractName}.json`)
+    return path.resolve(process.cwd(), `./build/contracts/${contractName}.json`)
   }
 }

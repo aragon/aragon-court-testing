@@ -14,13 +14,11 @@ module.exports = class extends Agent {
     const accounts = await this.environment.getAccounts()
     for (let i = 1; i < this.jurors; i *= 3) {
       await sleep(1)
-      const params = [accounts[i], 1e18]
-      const receipt = await this.court.deactivate(...params)
-      process.send(['deactivate', [params, receipt]])
+      await this.court.deactivate(accounts[i], 1e18)
     }
   }
 
-  activationHandler(params, receipt) {
+  onActivate(params, receipt) {
     logger.warn(`activate ${params} ${receipt}`)
   }
 }
